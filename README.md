@@ -82,8 +82,8 @@ The pattern `build:*` matches the scripts `build:compile`, `build:schema` and `b
 
 By default scripts are executed sequentially and execution halts on first error. With the `-p` (or `--parallel`) option the matched scripts are executed in parallel instead. In parallel execution the outputs of the commands are buffered to prevent chaotic mixed output. If the executed programs do not support the `FORCE_COLOR` environment variable then colored output might get lost because of the buffering and you may need to specify proprietary options to force color output. `cspell` for example ignores the `FORCE_COLOR` environment variable and needs an explicit `--color` option to enable colors.
 
-[GitHub]: https://github.com/kayahr/rm
-[NPM]: https://www.npmjs.com/package/@kayahr/rm
+[GitHub]: https://github.com/kayahr/npm-utils
+[NPM]: https://www.npmjs.com/package/@kayahr/npm-utils
 [rimraf]: https://www.npmjs.com/package/rimraf
 [copyfiles]: https://www.npmjs.com/package/copyfiles
 [npm-run-all]: https://www.npmjs.com/package/npm-run-all
