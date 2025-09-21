@@ -10,6 +10,8 @@ import packageJSON from "../../package.json" with { type: "json" };
 import { spawn } from "node:child_process";
 import type { Readable, Writable } from "node:stream";
 import { getColorLevel } from "./colors.ts";
+import { access, constants, readFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 
 /**
  * Options for {@link run}.
@@ -33,12 +35,33 @@ function commandToRegExp(command: string): RegExp {
 }
 
 /**
+ * @returns The nearest package.json file in current or parent directories.
+ *
+ * @returns The
+ */
+async function findNearestPackageJson(dir = process.cwd()): Promise<string> {
+    const candidate = join(dir, "package.json");
+    try {
+        await access(candidate, constants.F_OK);
+        return candidate;
+    } catch {
+        const parent = dirname(dir);
+        if (parent === dir) {
+            throw new Error("Unable to locale package.json");
+        }
+        return findNearestPackageJson(parent);
+    }
+}
+
+/**
  * Resolve wildcard in script names and returns the resolve script names.
  *
  * @param commands - The script names containing wildcards.
  * @returns The resolved script names.
  */
-function resolveCommands(commands: string[]): string[] {
+async function resolveCommands(commands: string[]): Promise<string[]> {
+    const packageJSONFile = await findNearestPackageJson();
+    const packageJSON = JSON.parse(await readFile(packageJSONFile, "utf-8")) as { scripts: Record<string, string> };
     const existingCommands = Object.keys(packageJSON.scripts);
     return commands.flatMap(command => {
         if (command.includes("*")) {
@@ -174,7 +197,7 @@ async function runCommand(command: string, { parallel, silent }: RunOptions): Pr
  * @param options  - The run options.
  */
 async function run(commands: string[], options: RunOptions): Promise<void> {
-    commands = resolveCommands(commands);
+    commands = await resolveCommands(commands);
     if (options.parallel && commands.length > 1) {
         const promises: Array<Promise<void>> = [];
         const errors: Error[] = [];
