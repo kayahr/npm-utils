@@ -9,6 +9,7 @@ import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { main } from "../main/rm.ts";
+import { captureOutput } from "./utils.ts";
 
 const tmpPrefix = join(tmpdir(), "@kayahr-npm-utils-");
 const testFiles = [
@@ -41,6 +42,14 @@ describe("rm", () => {
     async function list(): Promise<string[]> {
         return (await readdir(tmpDir, { recursive: true })).sort();
     }
+
+    it("shows help on --help option", async (t) => {
+        const output = captureOutput(t);
+        const result = await main([ "--help" ]);
+        assert.equal(result, 0);
+        assert.equal(output.stderr, "");
+        assert.match(output.stdout, /^Usage: rm /);
+    });
 
     it("removes a single file", async () => {
         const result = await main([
