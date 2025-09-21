@@ -1,0 +1,16 @@
+{
+    "version": "0.2",
+    "language": "en-US",
+    "files": [
+        "**/*"
+    ],
+    "ignorePaths": [
+        "package-lock.json"
+    ],
+    "enableFiletypes": [ "*" ],
+    "words": [
+        "kayahr",
+        "Reimer"
+    ],
+    "useGitignore": true
+}

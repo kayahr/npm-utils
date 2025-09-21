@@ -1,0 +1,79 @@
+{
+    "$schema": "http://json.schemastore.org/package",
+    "name": "@kayahr/npm-utils",
+    "version": "0.0.1",
+    "type": "module",
+    "description": "Cross-platform dependency-free CLI utilities for use in package.json scripts",
+    "keywords": [
+        "cli",
+        "npm",
+        "utils",
+        "tools",
+        "utilities",
+        "dependency-free",
+        "no-dependencies",
+        "del",
+        "delete",
+        "glob",
+        "recursive",
+        "remove",
+        "rimraf",
+        "rm",
+        "rmdir",
+        "cp",
+        "copy",
+        "run",
+        "parallel",
+        "sequential"
+    ],
+    "license": "MIT",
+    "author": {
+        "name": "Klaus Reimer",
+        "email": "k@ailis.de"
+    },
+    "repository": "github:kayahr/npm-utils",
+    "homepage": "https://github.com/kayahr/npm-utils",
+    "bugs": "https://github.com/kayahr/npm-utils/issues",
+    "funding": "https://github.com/kayahr/npm-utils?sponsor=1",
+    "publishConfig": {
+        "access": "public"
+    },
+    "files": [
+        "lib/main/",
+        "src/main/"
+    ],
+    "exports": [],
+    "bin": {
+        "rm": "lib/main/rm.js",
+        "run": "lib/main/run.js"
+    },
+    "engines": {
+        "node": ">=22"
+    },
+    "devEngines": {
+        "runtime": {
+            "name": "node",
+            "version": ">=24",
+            "onFail": "error"
+        },
+        "packageManager": {
+            "name": "npm",
+            "version": ">=11",
+            "onFail": "error"
+        }
+    },
+    "scripts": {
+        "clean": "node src/main/rm.ts -rf lib",
+        "build": "tsc",
+        "test": "npm run test:unit && npm run test:cspell",
+        "test:unit": "node --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=lib/test/lcov.info 'src/test/**/*.test.ts'",
+        "test:cspell": "cspell --color --no-progress",
+        "cat": "cat",
+        "prepare": "npm run clean && npm run build"
+    },
+    "devDependencies": {
+        "@kayahr/cspell": "9.2.1-bundle.2",
+        "@types/node": "24.5.2",
+        "typescript": "5.9.2"
+    }
+}
