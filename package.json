@@ -64,7 +64,7 @@
     },
     "scripts": {
         "clean": "rm -rf lib",
-        "build": "run build:compile",
+        "build": "run build:*",
         "build:compile": "tsc",
         "test": "run test:*",
         "test:unit": "node --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=lib/test/lcov.info 'src/test/**/*.test.ts'",
@@ -73,7 +73,7 @@
     },
     "devDependencies": {
         "@kayahr/cspell": "9.2.1-bundle.2",
-        "@kayahr/npm-utils": "0.0.1",
+        "@kayahr/npm-utils": "0.0.2",
         "@types/node": "24.5.2",
         "typescript": "5.9.2"
     }
