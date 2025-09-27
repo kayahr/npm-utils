@@ -159,7 +159,12 @@ async function runCommand(command: string, { parallel, silent }: RunOptions): Pr
 
         // Start NPM command
         const child = spawn("npm", [ "run", ...npmOptions, command ],
-            { stdio: [ "inherit", parallel ? "pipe" : "inherit", parallel ? "pipe" : "inherit" ], env });
+            {
+                stdio: [ "inherit", parallel ? "pipe" : "inherit", parallel ? "pipe" : "inherit" ],
+                shell: true,
+                env
+            }
+        );
 
         // When parallel execution then handle buffered output
         if (parallel && child.stdout != null && child.stderr != null) {
