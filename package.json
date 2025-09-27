@@ -74,7 +74,7 @@
     },
     "devDependencies": {
         "@kayahr/cspell": "9.2.1-bundle.2",
-        "@kayahr/npm-utils": "0.0.5",
+        "@kayahr/npm-utils": "0.0.6",
         "@kayahr/ntest": "1.0.0",
         "@kayahr/oxlint-config": "1.0.3",
         "@types/node": "24.5.2",
