@@ -158,10 +158,10 @@ async function runCommand(command: string, { parallel, silent }: RunOptions): Pr
         }
 
         // Start NPM command
-        const child = spawn("npm", [ "run", ...npmOptions, command ],
+        const npmBin = process.platform === "win32" ? "npm.cmd" : "npm";
+        const child = spawn(npmBin, [ "run", ...npmOptions, command ],
             {
                 stdio: [ "inherit", parallel ? "pipe" : "inherit", parallel ? "pipe" : "inherit" ],
-                shell: true,
                 env
             }
         );
