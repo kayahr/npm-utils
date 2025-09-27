@@ -7,6 +7,10 @@
 
 Cross-platform CLI utilities for use in *package.json* scripts.
 
+Requirements:
+
+* [Node.js]: >=22.18.0
+
 Currently available tools:
 
 * `rm` — Remove files and directories
@@ -87,3 +91,4 @@ By default scripts are executed sequentially and execution halts on first error.
 [rimraf]: https://www.npmjs.com/package/rimraf
 [copyfiles]: https://www.npmjs.com/package/copyfiles
 [npm-run-all]: https://www.npmjs.com/package/npm-run-all
+[Node.js]: https://nodejs.org/
