@@ -56,7 +56,7 @@ describe("rm", () => {
             join(tmpDir, "deep/test3.txt")
         ]);
         assert.equal(result, 0);
-        assert.deepEqual(await list(), [ "deep", "deep/deeper", "deep/deeper/test4.txt", "test1.png", "test1.txt", "test2.txt" ]);
+        assert.deepEqual(await list(), [ "deep", join("deep/deeper"), join("deep/deeper/test4.txt"), "test1.png", "test1.txt", "test2.txt" ]);
     });
 
     it("removes multiple files", async () => {
@@ -65,7 +65,7 @@ describe("rm", () => {
             join(tmpDir, "*.txt")
         ]);
         assert.equal(result, 0);
-        assert.deepEqual(await list(), [ "deep", "deep/deeper", "deep/test3.txt", "test1.png" ]);
+        assert.deepEqual(await list(), [ "deep", join("deep/deeper"), join("deep/test3.txt"), "test1.png" ]);
     });
 
     it("removes a single file with absolute filename", async () => {
@@ -73,7 +73,7 @@ describe("rm", () => {
             join(tmpDir, "deep/test3.txt")
         ]);
         assert.equal(result, 0);
-        assert.deepEqual(await list(), [ "deep", "deep/deeper", "deep/deeper/test4.txt", "test1.png", "test1.txt", "test2.txt" ]);
+        assert.deepEqual(await list(), [ "deep", join("deep/deeper"), join("deep/deeper/test4.txt"), "test1.png", "test1.txt", "test2.txt" ]);
     });
 
     it("removes a single file with filename relative to working directory", async () => {
@@ -82,7 +82,7 @@ describe("rm", () => {
             join("deep/test3.txt")
         ]);
         assert.equal(result, 0);
-        assert.deepEqual(await list(), [ "deep", "deep/deeper", "deep/deeper/test4.txt", "test1.png", "test1.txt", "test2.txt" ]);
+        assert.deepEqual(await list(), [ "deep", join("deep/deeper"), join("deep/deeper/test4.txt"), "test1.png", "test1.txt", "test2.txt" ]);
     });
 
     it("removes a single directory recursively", async () => {
