@@ -48,7 +48,7 @@
         "run": "lib/main/run.js"
     },
     "engines": {
-        "node": ">=22"
+        "node": ">=22.18.0"
     },
     "devEngines": {
         "runtime": {
