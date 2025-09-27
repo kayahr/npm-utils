@@ -30,7 +30,7 @@ interface RunOptions {
  * @returns The regular expression used to match actual script names.
  */
 function commandToRegExp(command: string): RegExp {
-    return new RegExp(`^${command.replaceAll(/[.+?^${}()|[\]\\]/g, '\\$&').replaceAll(/\*+/g, joker => joker.length === 1 ? "[^:]+" : ".*")}$`);
+    return new RegExp(`^${command.replaceAll(/[.+?^${}()|[\]\\]/g, "\\$&").replaceAll(/\*+/g, joker => joker.length === 1 ? "[^:]+" : ".*")}$`);
 }
 
 /**
@@ -60,7 +60,7 @@ async function findNearestPackageJson(dir = process.cwd()): Promise<string> {
  */
 async function resolveCommands(commands: string[]): Promise<string[]> {
     const packageJSONFile = await findNearestPackageJson();
-    const packageJSON = JSON.parse(await readFile(packageJSONFile, "utf-8")) as { scripts: Record<string, string> };
+    const packageJSON = JSON.parse(await readFile(packageJSONFile, "utf8")) as { scripts: Record<string, string> };
     const existingCommands = Object.keys(packageJSON.scripts);
     return commands.flatMap(command => {
         if (command.includes("*")) {
