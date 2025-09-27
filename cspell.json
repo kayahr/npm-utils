@@ -7,10 +7,15 @@
     "ignorePaths": [
         "package-lock.json"
     ],
-    "enableFiletypes": [ "*" ],
+    "enableFiletypes": [
+        "*"
+    ],
     "words": [
         "kayahr",
-        "Reimer"
+        "ntest",
+        "oxlint",
+        "Reimer",
+        "tsgolint"
     ],
     "useGitignore": true
 }

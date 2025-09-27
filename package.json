@@ -53,7 +53,7 @@
     "devEngines": {
         "runtime": {
             "name": "node",
-            "version": ">=24",
+            "version": ">=22.18.0",
             "onFail": "error"
         },
         "packageManager": {
@@ -67,13 +67,16 @@
         "build": "run build:*",
         "build:compile": "tsc",
         "test": "run test:*",
-        "test:unit": "node --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=lib/test/lcov.info 'lib/test/**/*.test.js'",
+        "test:unit": "ntest",
+        "test:lint": "oxlint --type-aware --deny-warnings",
         "test:cspell": "cspell --color --no-progress",
         "prepare": "run clean build"
     },
     "devDependencies": {
         "@kayahr/cspell": "9.2.1-bundle.2",
-        "@kayahr/npm-utils": "0.0.3",
+        "@kayahr/npm-utils": "0.0.4",
+        "@kayahr/ntest": "1.0.0",
+        "@kayahr/oxlint-config": "1.0.3",
         "@types/node": "24.5.2",
         "typescript": "5.9.2"
     }
