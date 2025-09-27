@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: MIT
  */
 
+import assert from "node:assert";
 import { describe, it } from "node:test";
 import { getColorLevel } from "../main/colors.ts";
-import assert from "node:assert";
 
-// Define getColorDepth methods if not present or otherwise it can't be mocked
-process.stdout.getColorDepth ??= () => 1;
-process.stderr.getColorDepth ??= () => 1;
+// Define getColorDepth methods so they can be mocked
+Object.defineProperty(process.stdout, "getColorDepth", { configurable: true });
+Object.defineProperty(process.stderr, "getColorDepth", { configurable: true });
 
 describe("colors", () => {
     describe("getColorLevel", () => {

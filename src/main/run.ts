@@ -4,14 +4,13 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { parseArgs } from "node:util";
-
-import packageJSON from "../../package.json" with { type: "json" };
 import { spawn } from "node:child_process";
-import type { Readable, Writable } from "node:stream";
-import { getColorLevel } from "./colors.ts";
 import { access, constants, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import type { Readable, Writable } from "node:stream";
+import { parseArgs } from "node:util";
+import packageJSON from "../../package.json" with { type: "json" };
+import { getColorLevel } from "./colors.ts";
 
 /**
  * Options for {@link run}.
@@ -31,7 +30,7 @@ interface RunOptions {
  * @returns The regular expression used to match actual script names.
  */
 function commandToRegExp(command: string): RegExp {
-    return new RegExp("^" + command.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*+/g, (a) => a.length === 1 ? "[^:]+" : ".*")  + "$");
+    return new RegExp(`^${command.replaceAll(/[.+?^${}()|[\]\\]/g, '\\$&').replaceAll(/\*+/g, joker => joker.length === 1 ? "[^:]+" : ".*")}$`);
 }
 
 /**
@@ -102,7 +101,8 @@ function write(stream: Writable, text: string, command: string): void {
         // Otherwise append text to buffer
         let buffer = buffers.get(command);
         if (buffer == null) {
-            buffers.set(command, buffer = []);
+            buffer = [];
+            buffers.set(command, buffer);
         }
         buffer.push({ stream: stream, text });
     }
@@ -152,7 +152,7 @@ async function runCommand(command: string, { parallel, silent }: RunOptions): Pr
     return new Promise((resolve, reject) => {
         // Build environment based on current environment plus optionally added FORCE_COLOR variable for parallel execution. When command output is
         // buffered then programs can't check the output stream for color support. Setting FORCE_COLOR helps for most programs, but not all.
-        let env = { ...process.env };
+        const env = { ...process.env };
         if (parallel) {
             env.FORCE_COLOR ??= String(getColorLevel());
         }
@@ -163,8 +163,8 @@ async function runCommand(command: string, { parallel, silent }: RunOptions): Pr
 
         // When parallel execution then handle buffered output
         if (parallel && child.stdout != null && child.stderr != null) {
-            const bufferStream = (stream: Readable, target: Writable) => {
-                stream.on("data", (chunk) => {
+            const bufferStream = (stream: Readable, target: Writable): void => {
+                stream.on("data", (chunk: string) => {
                     write(target, chunk, command);
                 });
             }
@@ -205,7 +205,7 @@ async function run(commands: string[], options: RunOptions): Promise<void> {
         // Start all commands in parallel and gather errors
         for (const command of commands) {
             const promise = runCommand(command, options);
-            promise.catch(error => errors.push(error));
+            promise.catch((error: unknown) => errors.push(error instanceof Error ? error : new Error(String(error))));
             promises.push(promise);
         }
 
@@ -216,7 +216,7 @@ async function run(commands: string[], options: RunOptions): Promise<void> {
         flushAll();
 
         // Handle gathered errors
-        if (errors.length == 1) {
+        if (errors.length === 1) {
             throw errors[0];
         } else if (errors.length > 1) {
             const messages = errors.map(error => error instanceof Error ? error.message : String(error));

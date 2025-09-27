@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { afterEach, beforeEach, describe, it } from "node:test";
 import assert from "node:assert";
-import { dirname, join } from "node:path";
-import { tmpdir } from "node:os";
 import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { afterEach, beforeEach, describe, it } from "node:test";
 import { main } from "../main/rm.ts";
 import { captureOutput } from "./utils.ts";
 
@@ -31,7 +31,7 @@ describe("rm", () => {
         for (const testFile of testFiles) {
             const path = join(tmpDir, testFile);
             await mkdir(dirname(path), { recursive: true });
-            await writeFile(path, "Content of " + testFile);
+            await writeFile(path, `Content of ${testFile}`);
         }
     });
 
