@@ -31,7 +31,10 @@
         "name": "Klaus Reimer",
         "email": "k@ailis.de"
     },
-    "repository": "github:kayahr/npm-utils",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kayahr/npm-utils.git"
+    },
     "homepage": "https://github.com/kayahr/npm-utils",
     "bugs": "https://github.com/kayahr/npm-utils/issues",
     "funding": "https://github.com/kayahr/npm-utils?sponsor=1",

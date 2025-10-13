@@ -2,26 +2,18 @@
 
 [GitHub] | [NPM]
 
-| :warning: This project is currently under construction and missing crucial functionality |
-| - |
-
 Cross-platform CLI utilities for use in *package.json* scripts.
 
 Requirements:
 
-* [Node.js]: >=22.18.0
+* [Node.js] >=22.18.0
 
 Currently available tools:
 
 * `rm` — Remove files and directories
-
-Planned tools:
-
-* `cp` — Copy files and directories
-* `mv` — Move files and directories
 * `run` — Run npm scripts in parallel or sequentially
 
-The goal of this project is to provide zero-dependency alternatives to tools like [rimraf], [copyfiles], and [npm-run-all]. All commands rely only on built-in Node.js functionality.
+The goal of this project is to provide zero-dependency alternatives to tools like [rimraf] and [npm-run-all]. All commands rely only on built-in Node.js functionality.
 
 ## Usage
 
@@ -39,7 +31,7 @@ Then use the commands in your *package.json*:
         "clean": "rm -rf lib",
         "build": "run build:*",
         "build:compile": "tsc",
-        "build:assets": "cp -rf 'src/images/**/*.png' lib/assets/",
+        "build:bundle": "esbuild",
         "prepare": "run clean build"
     }
 }
