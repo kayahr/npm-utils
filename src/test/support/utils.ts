@@ -13,3 +13,7 @@ export function captureOutput(t: it.TestContext): { stdout: string, stderr: stri
     const stderrMock = t.mock.method(process.stderr, "write", (text: string) => { output.stderr += text; });
     return output;
 }
+
+export function isWindows(): boolean {
+    return process.platform === "win32";
+}

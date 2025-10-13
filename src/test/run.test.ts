@@ -5,7 +5,7 @@
 
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { main } from "../main/run.ts";
-import { captureOutput } from "./support/utils.ts";
+import { captureOutput, isWindows } from "./support/utils.ts";
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -137,7 +137,6 @@ describe("run", () => {
         const result = await withWorkingDir(tmpDir, () => main([ "build:*" ], io));
         assert.equal(result, 0);
         assert.equal(io.capturedStderr, "");
-        console.log("OUt", io.capturedStdout.trim().split("\n"));
         const outputs = io.capturedStdout.trim().split("\n").map(line => JSON.parse(line) as string[]);
         assert.equal(outputs.length, 2);
         assert.equal(outputs[0][2], "run");
@@ -238,7 +237,7 @@ describe("run", () => {
         assert.equal(io.capturedStderr, "run: Environment variable 'npm_execpath' not found. Make sure to run this script through NPM\n");
     });
 
-    it("can output to real console", async () => {
+    it("can output to real console", { skip: isWindows() }, async () => {
         const outFile = join(tmpDir, "out.txt");
         await writeFile(join(tmpDir, "npm.mjs"), `
             import { writeFile } from "node:fs/promises";

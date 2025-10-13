@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { main } from "../main/rm.ts";
-import { captureOutput } from "./support/utils.ts";
+import { captureOutput, isWindows } from "./support/utils.ts";
 import { execFileSync } from "node:child_process";
 
 const tmpPrefix = join(tmpdir(), "@kayahr-npm-utils-");
@@ -183,28 +183,24 @@ describe("rm", () => {
         assert.equal(output.stderr, `rm: cannot remove '${join(tmpDir, "not-existent.txt")}': No such file or directory\n`);
     });
 
-    it("throws error when trying to remove write-protected file", async (t) => {
+    it("throws error when trying to remove write-protected file", { skip: isWindows() }, async (t) => {
         const output = captureOutput(t);
         const testFile = join(tmpDir, "test1.txt");
-        await chmod(testFile, 0o444); // For windows
-        await chmod(tmpDir, 0o555); // For linux
+        await chmod(tmpDir, 0o555);
         try {
             const result = await main([ testFile ]);
             assert.equal(result, 1);
             assert.equal(output.stderr, `rm: EACCES: permission denied, unlink '${testFile}'\n`);
         } finally {
-            await chmod(tmpDir, 0o777); // For linux
-            await chmod(testFile, 0o666); // For windows
+            await chmod(tmpDir, 0o777);
         }
     });
 
-    it("throws aggregated error when trying to remove multiple write-protected files", async (t) => {
+    it("throws aggregated error when trying to remove multiple write-protected files", { skip: isWindows() }, async (t) => {
         const output = captureOutput(t);
         const testFile1 = join(tmpDir, "test1.txt");
         const testFile2 = join(tmpDir, "test2.txt");
-        await chmod(testFile1, 0o444); // For windows
-        await chmod(testFile2, 0o444); // For windows
-        await chmod(tmpDir, 0o555); // For linux
+        await chmod(tmpDir, 0o555);
         try {
             const result = await main([ testFile1, testFile2 ]);
             assert.equal(result, 1);
@@ -213,9 +209,7 @@ describe("rm", () => {
                 + `  EACCES: permission denied, unlink '${testFile2}'\n`
             );
         } finally {
-            await chmod(tmpDir, 0o777); // For linux
-            await chmod(testFile1, 0o666); // For windows
-            await chmod(testFile2, 0o666); // For windows
+            await chmod(tmpDir, 0o777);
         }
     });
 
