@@ -12,5 +12,6 @@
                 "--experimental-test-coverage"
             ]
         }
-    ]
+    ],
+    "oxc.enable": true
 }

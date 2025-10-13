@@ -10,12 +10,15 @@ import packageJSON from "../../package.json" with { type: "json" };
 import type { GlobOptionsWithoutFileTypes, RmOptions } from "node:fs";
 import { glob, rm } from "node:fs/promises";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { getErrorMessage } from "./utils/error.ts";
 
 /**
  * Options for {@link removePatterns}.
  */
 interface RemovePatternsOptions extends GlobOptionsWithoutFileTypes, RmOptions {
+    /** The current working directory. */
+    cwd?: string;
+
     /** Maximum number of parallel deletions. Default: 64. */
     limit?: number;
 
@@ -30,17 +33,11 @@ interface RemovePatternsOptions extends GlobOptionsWithoutFileTypes, RmOptions {
  * Resolves a filename (relative or absolute) against given directory.
  *
  * @param file - The file name to resolve.
- * @param dir  - The directory to resolve against. Can be a path or a file URL. If not specified then filename is returned unchanged.
+ * @param dir  - The directory to resolve against. If not specified then filename is returned unchanged.
  * @returns The resolved path.
  */
-function resolvePath(file: string, dir?: URL | string): string {
-    if (dir == null) {
-        return file;
-    } else if (typeof dir === "string") {
-        return resolve(dir, file);
-    } else {
-        return resolve(fileURLToPath(dir), file);
-    }
+function resolvePath(file: string, dir?: string): string {
+    return dir == null ? file : resolve(dir, file);
 }
 
 /**
@@ -59,22 +56,26 @@ async function removePatterns(patterns: string[], { cwd, exclude, verbose = fals
 
     // Iterate over specified removal patterns
     for (const pattern of patterns) {
+        let matched = false;
+
         // Iterate over files matching the current pattern
         for await (const file of glob(pattern, { cwd, exclude })) {
+            matched = true;
+
             // Asynchronously remove the file. We don't wait for it, so file removals happen in limited batches. Errors are caught as soon as possible and
             // stored because otherwise Node.js aborts with unhandled promise reject exception.
             const task = (async () => {
                 try {
                     const path = resolvePath(file, cwd);
                     if (dryRun) {
-                        console.log(`would remove '${path}'`);
+                        console.log(`Would remove '${path}'`);
                     } else {
                         await rm(
                             path,
                             Object.fromEntries(Object.entries(rmOptions).filter(([ , v ]) => v != null))
                         );
                         if (verbose) {
-                            console.log(`removed '${path}'`);
+                            console.log(`Removed '${path}'`);
                         }
                     }
                 } catch (error) {
@@ -89,6 +90,11 @@ async function removePatterns(patterns: string[], { cwd, exclude, verbose = fals
                 await Promise.race(tasks);
             }
         }
+
+        // When pattern did not yield any matches and force flag is not set then fail with error message, like original rm
+        if (rmOptions.force !== true && !matched) {
+            throw new Error(`cannot remove '${pattern}': No such file or directory`);
+        }
     }
 
     // Wait for all file removals to finish
@@ -98,8 +104,8 @@ async function removePatterns(patterns: string[], { cwd, exclude, verbose = fals
     if (errors.length === 1) {
         throw errors[0];
     } else if (errors.length > 1) {
-        const messages = errors.map(error => error instanceof Error ? error.message : String(error));
-        throw new AggregateError(errors, `Failed to remove ${errors.length} files\n  ${messages.join("\n  ")}`);
+        const messages = errors.map(getErrorMessage);
+        throw new AggregateError(errors, `failed to remove ${errors.length} files\n  ${messages.join("\n  ")}`);
     }
 }
 
@@ -184,7 +190,7 @@ export async function main(args: string[]): Promise<number> {
         await removePatterns(positionals, options);
         return 0;
     } catch (error) {
-        console.error("rm:", error instanceof Error ? error.message : String(error));
+        console.error("rm:", getErrorMessage(error));
         return 1;
     }
 }

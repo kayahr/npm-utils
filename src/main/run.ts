@@ -7,10 +7,11 @@
 import { spawn } from "node:child_process";
 import { access, constants, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import type { Readable, Writable } from "node:stream";
+import type { Readable, Stream } from "node:stream";
 import { parseArgs } from "node:util";
 import packageJSON from "../../package.json" with { type: "json" };
-import { getColorLevel } from "./colors.ts";
+import { getColorLevel } from "./utils/colors.ts";
+import { getErrorMessage, toError } from "./utils/error.ts";
 
 /**
  * Options for {@link run}.
@@ -22,6 +23,16 @@ interface RunOptions {
     /** Set to true to pass --silent option to NPM. */
     silent?: boolean;
 }
+
+export type WritableStream = Stream & NodeJS.WritableStream;
+
+/**
+ * CLI IO interface with stdout and stderr.
+ */
+export interface IO {
+    stdout: WritableStream;
+    stderr: WritableStream;
+};
 
 /**
  * Converts the given unresolved script name into a regular expression which can be used to match actual script names.
@@ -46,7 +57,7 @@ async function findNearestPackageJson(dir = process.cwd()): Promise<string> {
     } catch {
         const parent = dirname(dir);
         if (parent === dir) {
-            throw new Error("Unable to locale package.json");
+            throw new Error("Unable to locate package.json");
         }
         return findNearestPackageJson(parent);
     }
@@ -76,7 +87,7 @@ async function resolveCommands(commands: string[]): Promise<string[]> {
 const runningCommands = new Set<string>();
 
 /** Buffers used to record outputs of commands in parallel mode. */
-const buffers = new Map<string, Array<{ stream: Writable, text: string }>>();
+const buffers = new Map<string, Array<{ stream: NodeJS.WritableStream, text: string }>>();
 
 /**
  * @returns The first command in the parallel executed command queue or null if queue is empty.
@@ -93,7 +104,7 @@ function getPrimaryCommand(): string | null {
  * @param text    - The text to write.
  * @param command - The command which produces the text.
  */
-function write(stream: Writable, text: string, command: string): void {
+function write(stream: WritableStream, text: string, command: string): void {
     if (getPrimaryCommand() === command) {
         // When command is the primary command then write it to target stream directly
         stream.write(text);
@@ -139,8 +150,9 @@ function flushAll(): void {
  *
  * @param command - The command to run.
  * @param options - The run options.
+ * @param io      - stdout/stderr streams.
  */
-async function runCommand(command: string, { parallel, silent }: RunOptions): Promise<void> {
+async function runCommand(command: string, { parallel, silent }: RunOptions, io: IO): Promise<void> {
     const npmOptions: string[] = [];
     if (silent) {
         npmOptions.push("-s");
@@ -159,30 +171,32 @@ async function runCommand(command: string, { parallel, silent }: RunOptions): Pr
 
         // Start NPM command
         const npmExecPath = process.env.npm_execpath;
-        let npmBin: string;
-        const spawnArgs = [ "run", ...npmOptions, command ];
         if (npmExecPath == null) {
-            npmBin = "npm";
-        } else {
-            npmBin = process.execPath;
-            spawnArgs.unshift(npmExecPath);
+            throw new Error("Environment variable 'npm_execpath' not found. Make sure to run this script through NPM");
         }
-        const child = spawn(npmBin, spawnArgs,
+        const child = spawn(process.execPath, [ npmExecPath, "run", ...npmOptions, command ],
             {
-                stdio: [ "inherit", parallel ? "pipe" : "inherit", parallel ? "pipe" : "inherit" ],
+                stdio: [
+                    "inherit",
+                    (parallel || io.stdout !== process.stdout) ? "pipe" : "inherit",
+                    (parallel || io.stderr !== process.stderr) ? "pipe" : "inherit"
+                ],
                 env
             }
         );
-
         // When parallel execution then handle buffered output
         if (parallel && child.stdout != null && child.stderr != null) {
-            const bufferStream = (stream: Readable, target: Writable): void => {
+            const bufferStream = (stream: Readable, target: WritableStream): void => {
                 stream.on("data", (chunk: string) => {
                     write(target, chunk, command);
                 });
             }
-            bufferStream(child.stdout, process.stdout);
-            bufferStream(child.stderr, process.stderr);
+            bufferStream(child.stdout, io.stdout);
+            bufferStream(child.stderr, io.stderr);
+        } else {
+            // Direct pipe to custom IO if used
+            child.stdout?.pipe(io.stdout, { end: false });
+            child.stderr?.pipe(io.stderr, { end: false });
         }
 
         child.on("error", reject);
@@ -208,8 +222,9 @@ async function runCommand(command: string, { parallel, silent }: RunOptions): Pr
  *
  * @param commands - The commands to run. Can use asterisk character as wildcard.
  * @param options  - The run options.
+ * @param io       - stdout/stderr streams.
  */
-async function run(commands: string[], options: RunOptions): Promise<void> {
+async function run(commands: string[], options: RunOptions, io: IO): Promise<void> {
     commands = await resolveCommands(commands);
     if (options.parallel && commands.length > 1) {
         const promises: Array<Promise<void>> = [];
@@ -217,8 +232,8 @@ async function run(commands: string[], options: RunOptions): Promise<void> {
 
         // Start all commands in parallel and gather errors
         for (const command of commands) {
-            const promise = runCommand(command, options);
-            promise.catch((error: unknown) => errors.push(error instanceof Error ? error : new Error(String(error))));
+            const promise = runCommand(command, options, io);
+            promise.catch((error: unknown) => errors.push(toError(error)));
             promises.push(promise);
         }
 
@@ -232,13 +247,13 @@ async function run(commands: string[], options: RunOptions): Promise<void> {
         if (errors.length === 1) {
             throw errors[0];
         } else if (errors.length > 1) {
-            const messages = errors.map(error => error instanceof Error ? error.message : String(error));
+            const messages = errors.map(getErrorMessage);
             throw new AggregateError(errors, `Execution of ${errors.length} commands failed\n  ${messages.join("\n  ")}`);
         }
     } else {
         // Run all commands sequentially
         for (const command of commands) {
-            await runCommand(command, { ...options, parallel: false });
+            await runCommand(command, { ...options, parallel: false }, io);
         }
     }
 }
@@ -254,20 +269,23 @@ Options:
   --help              display this help and exit
   --version           output version information and exit
 
-Report bugs to <${packageJSON.bugs}>.`;
+Report bugs to <${packageJSON.bugs}>.
+`;
 
 /** The version text. */
 const version = `run ${packageJSON.version}
 
-Written by ${packageJSON.author.name} <${packageJSON.author.email}>`;
+Written by ${packageJSON.author.name} <${packageJSON.author.email}>
+`;
 
 /**
  * Main function.
  *
  * @param args - The command line arguments (`process.argv.slice(2)`)
+ * @param io   - Optional custom stdout/stderr streams. Defaults to Node.js `process`.
  * @returns The exit code
  */
-export async function main(args: string[]): Promise<number> {
+export async function main(args: string[], io: IO = process): Promise<number> {
     try {
         const { values, positionals } = parseArgs({
             args,
@@ -281,17 +299,17 @@ export async function main(args: string[]): Promise<number> {
         });
 
         if (values.help) {
-            console.log(help);
+            io.stdout.write(help);
             return 0;
         }
 
         if (values.version) {
-            console.log(version);
+            io.stdout.write(version);
             return 0;
         }
 
         if (positionals.length === 0) {
-            console.error("run: missing script name\nTry 'cmd --help' for more information.");
+            io.stderr.write("run: missing script name\nTry 'cmd --help' for more information.\n");
             return 2;
         }
 
@@ -300,10 +318,10 @@ export async function main(args: string[]): Promise<number> {
             silent: values.silent
         };
 
-        await run(positionals, options);
+        await run(positionals, options, io);
         return 0;
     } catch (error) {
-        console.error("run:", error instanceof Error ? error.message : String(error));
+        io.stderr.write(`run: ${getErrorMessage(error)}\n`);
         return 1;
     }
 }

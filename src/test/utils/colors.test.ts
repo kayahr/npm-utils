@@ -5,7 +5,7 @@
 
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { getColorLevel } from "../main/colors.ts";
+import { getColorLevel } from "../../main/utils/colors.ts";
 
 // Define getColorDepth methods so they can be mocked
 Object.defineProperty(process.stdout, "getColorDepth", { configurable: true });
