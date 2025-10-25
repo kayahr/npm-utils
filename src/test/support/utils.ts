@@ -1,3 +1,4 @@
+import { stat } from "node:fs/promises";
 import type { it } from "node:test";
 
 export function captureOutput(t: it.TestContext): { stdout: string, stderr: string, restore: () => void } {
@@ -16,4 +17,20 @@ export function captureOutput(t: it.TestContext): { stdout: string, stderr: stri
 
 export function isWindows(): boolean {
     return process.platform === "win32";
+}
+
+function isErrnoException(e: unknown): e is NodeJS.ErrnoException {
+    return e instanceof Object && typeof (e as NodeJS.ErrnoException).code === "string";
+}
+
+export async function exists(path: string | URL): Promise<boolean> {
+    try {
+        await stat(path);
+        return true;
+    } catch (error) {
+        if (isErrnoException(error) && (error.code === "ENOENT" || error.code === "ENOTDIR")) {
+            return false;
+        }
+        throw error;
+    }
 }

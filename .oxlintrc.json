@@ -5,5 +5,8 @@
     ],
     "env": {
         "node": true
+    },
+    "rules": {
+        "node/no-process-env": "off"
     }
 }
