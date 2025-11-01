@@ -47,6 +47,7 @@
     ],
     "exports": [],
     "bin": {
+        "cp": "lib/main/cp.js",
         "rm": "lib/main/rm.js",
         "run": "lib/main/run.js"
     },
