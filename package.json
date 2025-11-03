@@ -78,10 +78,10 @@
     },
     "devDependencies": {
         "@kayahr/cspell": "9.2.2-bundle.1",
-        "@kayahr/npm-utils": "1.1.0",
-        "@kayahr/ntest": "1.1.0",
-        "@kayahr/oxlint-config": "1.7.0",
-        "@types/node": "24.9.2",
+        "@kayahr/npm-utils": "1.1.1",
+        "@kayahr/ntest": "1.2.2",
+        "@kayahr/oxlint-config": "1.10.0",
+        "@types/node": "24.10.0",
         "typescript": "5.9.3"
     }
 }
