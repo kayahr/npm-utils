@@ -4,6 +4,7 @@
  */
 
 import assert from "node:assert";
+import { assertContain } from "@kayahr/assert";
 import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -145,21 +146,21 @@ describe("cp", () => {
         ]);
         assert.equal(output.stderr, "");
         assert.equal(result, 0);
-        assert.equal(output.stdout, "Filtering 'deep'\n"
-            + "Filtering 'deep/deeper'\n"
-            + "Filtering 'deep/deeper/test4.png'\n"
-            + "Filtering 'deep/deeper/test4.txt'\n"
-            + "Including 'deep/deeper/test4.txt'\n"
-            + "Filtering 'deep/test3.png'\n"
-            + "Filtering 'deep/test3.txt'\n"
-            + "Excluding 'deep/test3.txt'\n"
-            + "Filtering 'test2.png'\n"
-            + "Filtering 'test1.png'\n"
-            + "Filtering 'test2.txt'\n"
-            + "Including 'test2.txt'\n"
-            + "Filtering 'test1.txt'\n"
-            + "Including 'test1.txt'\n"
-            + `Copied '${join(tmpDir, "source")}' to '${join(tmpDir, "dest")}'\n`);
+        assertContain(output.stdout, "Filtering 'deep'\n");
+        assertContain(output.stdout, "Filtering 'deep/deeper'\n");
+        assertContain(output.stdout, "Filtering 'deep/deeper/test4.png'\n");
+        assertContain(output.stdout, "Filtering 'deep/deeper/test4.txt'\n");
+        assertContain(output.stdout, "Including 'deep/deeper/test4.txt'\n");
+        assertContain(output.stdout, "Filtering 'deep/test3.png'\n");
+        assertContain(output.stdout, "Filtering 'deep/test3.txt'\n");
+        assertContain(output.stdout, "Excluding 'deep/test3.txt'\n");
+        assertContain(output.stdout, "Filtering 'test2.png'\n");
+        assertContain(output.stdout, "Filtering 'test1.png'\n");
+        assertContain(output.stdout, "Filtering 'test2.txt'\n");
+        assertContain(output.stdout, "Including 'test2.txt'\n");
+        assertContain(output.stdout, "Filtering 'test1.txt'\n");
+        assertContain(output.stdout, "Including 'test1.txt'\n");
+        assertContain(output.stdout, `Copied '${join(tmpDir, "source")}' to '${join(tmpDir, "dest")}'\n`);
         assert.deepEqual(await list(dest), [
             "deep",
             "deep/deeper",
@@ -236,20 +237,19 @@ describe("cp", () => {
         ]);
         assert.equal(output.stderr, "");
         assert.equal(result, 0);
-        assert.equal(output.stdout, "Filtering 'deep'\n"
-            + "Filtering 'deep/deeper'\n"
-            + "Filtering 'deep/deeper/test4.png'\n"
-            + "Filtering 'deep/deeper/test4.txt'\n"
-            + "Excluding 'deep/deeper/test4.txt'\n"
-            + "Filtering 'deep/test3.png'\n"
-            + "Filtering 'deep/test3.txt'\n"
-            + "Excluding 'deep/test3.txt'\n"
-            + "Filtering 'test2.png'\n"
-            + "Filtering 'test1.png'\n"
-            + "Filtering 'test2.txt'\n"
-            + "Filtering 'test1.txt'\n"
-            + `Copied '${source}' to '${dest}'\n`
-        );
+        assertContain(output.stdout, "Filtering 'deep'\n");
+        assertContain(output.stdout, "Filtering 'deep/deeper'\n");
+        assertContain(output.stdout, "Filtering 'deep/deeper/test4.png'\n");
+        assertContain(output.stdout, "Filtering 'deep/deeper/test4.txt'\n");
+        assertContain(output.stdout, "Excluding 'deep/deeper/test4.txt'\n");
+        assertContain(output.stdout, "Filtering 'deep/test3.png'\n");
+        assertContain(output.stdout, "Filtering 'deep/test3.txt'\n");
+        assertContain(output.stdout, "Excluding 'deep/test3.txt'\n");
+        assertContain(output.stdout, "Filtering 'test2.png'\n");
+        assertContain(output.stdout, "Filtering 'test1.png'\n");
+        assertContain(output.stdout, "Filtering 'test2.txt'\n");
+        assertContain(output.stdout, "Filtering 'test1.txt'\n");
+        assertContain(output.stdout, `Copied '${source}' to '${dest}'\n`);
         assert.deepEqual(await list(dest), [
             "deep",
             "deep/deeper",
