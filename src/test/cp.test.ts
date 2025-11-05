@@ -101,8 +101,8 @@ describe("cp", () => {
         assert.equal(await exists(dest), false);
         assert.equal(output.stdout,
             `Would copy '${sources[0]}' to '${join(dest, "test1.txt")}'\n`
-            + `Would copy '${sources[1].replace("*", "test1")}' to '${join(dest, "test1.png")}'\n`
-            + `Would copy '${sources[1].replace("*", "test2")}' to '${join(dest, "test2.png")}'\n`
+            + `Would copy '${sources[1].replaceAll("*", "test1")}' to '${join(dest, "test1.png")}'\n`
+            + `Would copy '${sources[1].replaceAll("*", "test2")}' to '${join(dest, "test2.png")}'\n`
         );
     });
 
