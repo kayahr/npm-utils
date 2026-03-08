@@ -22,7 +22,7 @@ export class IoCapture {
     public capturedStderr = "";
 
     public constructor() {
-        this.stdout.setEncoding("utf8").on("data", data => (this.capturedStdout += data));
-        this.stderr.setEncoding("utf8").on("data", data => (this.capturedStderr += data));
+        this.stdout.setEncoding("utf8").on("data", data => { this.capturedStdout += data });
+        this.stderr.setEncoding("utf8").on("data", data => { this.capturedStderr += data });
     }
 }

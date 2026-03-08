@@ -84,7 +84,7 @@ async function resolveCommands(commands: string[]): Promise<string[]> {
 }
 
 /** Set keeping track of which commands are currently running (in parallel mode) */
-const runningCommands = new Set<string>();
+const runningCommands = new Set<string | null>();
 
 /** Buffers used to record outputs of commands in parallel mode. */
 const buffers = new Map<string, Array<{ stream: NodeJS.WritableStream, text: string }>>();
@@ -152,7 +152,7 @@ function flushAll(): void {
  * @param options - The run options.
  * @param io      - stdout/stderr streams.
  */
-async function runCommand(command: string, { parallel, silent }: RunOptions, io: IO): Promise<void> {
+async function runCommand(command: string, { parallel = false, silent }: RunOptions, io: IO): Promise<void> {
     const npmOptions: string[] = [];
     if (silent) {
         npmOptions.push("-s");
@@ -178,8 +178,8 @@ async function runCommand(command: string, { parallel, silent }: RunOptions, io:
             {
                 stdio: [
                     "inherit",
-                    (parallel || io.stdout !== process.stdout) ? "pipe" : "inherit",
-                    (parallel || io.stderr !== process.stderr) ? "pipe" : "inherit"
+                    (parallel || io.stdout as NodeJS.WriteStream !== process.stdout as NodeJS.WriteStream) ? "pipe" : "inherit",
+                    (parallel || io.stderr as NodeJS.WriteStream !== process.stderr as NodeJS.WriteStream) ? "pipe" : "inherit"
                 ],
                 env
             }

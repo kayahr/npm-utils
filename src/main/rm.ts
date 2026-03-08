@@ -83,7 +83,7 @@ async function removePatterns(patterns: string[], { cwd, exclude, verbose = fals
                 }
             })();
             tasks.add(task);
-            void task.finally(() => tasks.delete(task));
+            void task.finally(() => { tasks.delete(task) });
 
             // When too many deletions are currently running then wait until there is room for more
             while (tasks.size >= limit) {

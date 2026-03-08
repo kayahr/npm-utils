@@ -13,12 +13,9 @@ Object.defineProperty(process.stderr, "getColorDepth", { configurable: true });
 
 describe("colors", () => {
     describe("getColorLevel", () => {
-        it("returns 0 when process.stdout.getColorDepth is not present", t => {
-            t.mock.property(process.stdout, "getColorDepth", undefined);
-            assert.equal(getColorLevel(), 0);
-        });
-        it("returns 0 when process.stderr.getColorDepth is not present", t => {
-            t.mock.property(process.stderr, "getColorDepth", undefined);
+        it("returns 0 when getColorDepth returns 1", t => {
+            t.mock.property(process.stdout, "getColorDepth", () => 1);
+            t.mock.property(process.stderr, "getColorDepth", () => 1);
             assert.equal(getColorLevel(), 0);
         });
         it("returns 1 when getColorDepth returns 4", t => {
