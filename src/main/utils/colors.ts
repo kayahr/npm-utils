@@ -10,7 +10,7 @@
  * @returns The color level (0 = Monochrome, 1 = 16 colors, 2 = 256 colors, 3 = True color)
  */
 export function getColorLevel(): number {
-    switch (Math.min(process.stdout.getColorDepth(), process.stderr.getColorDepth())) {
+    switch (Math.min(process.stdout.getColorDepth?.() ?? 1, process.stderr.getColorDepth?.() ?? 1)) {
         case 4:
             // 16 colors
             return 1;
