@@ -178,8 +178,8 @@ describe("run", () => {
     it("can run multiple scripts in parallel", async () => {
         const io = new IoCapture();
         const result = await withWorkingDir(tmpDir, () => main([ "--parallel", "test:*" ], io));
-        assert.equal(result, 0);
         assert.equal(io.capturedStderr, "");
+        assert.equal(result, 0);
         const outputs = io.capturedStdout.trim().split("\n").map(line => JSON.parse(line) as string[]);
         assert.equal(outputs.length, 3);
         assert.equal(outputs[0][2], "run");
@@ -192,21 +192,22 @@ describe("run", () => {
     it("reports multiple errors in parallel mode", async () => {
         const io = new IoCapture();
         const result = await withWorkingDir(tmpDir, () => main([ "--parallel", "error:*" ], io));
-        assert.equal(result, 1);
         const outputs = io.capturedStdout.trim().split("\n").map(line => JSON.parse(line) as string[]);
+        assert.match(io.capturedStderr, /^run: Execution of 2 commands failed\n/);
+        assert.match(io.capturedStderr, /error:a exited with code 1\n/);
+        assert.match(io.capturedStderr, /error:b exited with code 1\n/);
+        assert.equal(result, 1);
         assert.equal(outputs.length, 2);
         assert.equal(outputs[0][2], "run");
         assert.equal(outputs[0][3], "error:a");
         assert.equal(outputs[1][2], "run");
         assert.equal(outputs[1][3], "error:b");
-        assert.match(io.capturedStderr, /^run: Execution of 2 commands failed\n/);
-        assert.match(io.capturedStderr, /error:a exited with code 1\n/);
-        assert.match(io.capturedStderr, /error:b exited with code 1\n/);
     });
 
     it("reports single error in parallel mode", async () => {
         const io = new IoCapture();
         const result = await withWorkingDir(tmpDir, () => main([ "--parallel", "build:compile", "error:a" ], io));
+        assert.equal(io.capturedStderr, "run: error:a exited with code 1\n");
         assert.equal(result, 1);
         const outputs = io.capturedStdout.trim().split("\n").map(line => JSON.parse(line) as string[]);
         assert.equal(outputs.length, 2);
@@ -214,7 +215,6 @@ describe("run", () => {
         assert.equal(outputs[0][3], "build:compile");
         assert.equal(outputs[1][2], "run");
         assert.equal(outputs[1][3], "error:a");
-        assert.equal(io.capturedStderr, "run: error:a exited with code 1\n");
     });
 
     it("reports first errors in sequential mode", async () => {
