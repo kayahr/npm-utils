@@ -1,7 +1,7 @@
 {
     "$schema": "https://json.schemastore.org/package",
     "name": "@kayahr/npm-utils",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "type": "module",
     "description": "Cross-platform dependency-free CLI utilities for use in package.json scripts",
     "keywords": [
