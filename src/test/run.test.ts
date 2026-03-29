@@ -8,7 +8,7 @@ import { main } from "../main/run.ts";
 import { captureOutput, isWindows } from "./support/utils.ts";
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { IoCapture } from "./support/IoCapture.ts";
@@ -248,5 +248,23 @@ describe("run", () => {
         const output = JSON.parse(await readFile(outFile, "utf8")) as string[];
         assert.equal(output[2], "run");
         assert.equal(output[3], "build:compile");
+    });
+
+    it("can run with npm as a shell script", { skip: isWindows() }, async () => {
+        const outFile = join(tmpDir, "out.txt");
+        const oldNpmExecPath = process.env.npm_execpath;
+        const npm = process.env.npm_execpath = join(tmpDir, "npm");
+        try {
+            await writeFile(npm, `#!/bin/sh
+                echo "$@" > "${outFile}"
+            `);
+            await chmod(npm, 0o755);
+            const result = await withWorkingDir(tmpDir, () => main([ "build:compile" ]));
+            assert.equal(result, 0);
+            const output = await readFile(outFile, "utf8");
+            assert.equal(output, "run build:compile\n");
+        } finally {
+            process.env.npm_execpath = oldNpmExecPath
+        }
     });
 });

@@ -169,12 +169,22 @@ async function runCommand(command: string, { parallel = false, silent }: RunOpti
             env.FORCE_COLOR ??= String(getColorLevel());
         }
 
+
         // Start NPM command
         const npmExecPath = process.env.npm_execpath;
         if (npmExecPath == null) {
             throw new Error("Environment variable 'npm_execpath' not found. Make sure to run this script through NPM");
         }
-        const child = spawn(process.execPath, [ npmExecPath, "run", ...npmOptions, command ],
+
+        // When npmExecPath does not end with ".js" then use it directly as executable, other wise use node executable
+        const executable = /\.m?js/.exec(npmExecPath) != null ? process.execPath : npmExecPath;
+
+        const args = [ "run", ...npmOptions, command ];
+        if (npmExecPath !== executable) {
+            args.unshift(npmExecPath);
+        }
+
+        const child = spawn(executable, args,
             {
                 stdio: [
                     "inherit",
