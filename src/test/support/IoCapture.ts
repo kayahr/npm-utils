@@ -10,10 +10,10 @@ import { PassThrough } from "node:stream";
  */
 export class IoCapture {
     /** The capturing stdout stream. */
-    readonly stdout = new PassThrough();
+    public readonly stdout = new PassThrough();
 
     /** The capturing stderr stream. */
-    readonly stderr = new PassThrough();
+    public readonly stderr = new PassThrough();
 
     /** The captured stdout text. */
     public capturedStdout = "";

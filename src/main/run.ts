@@ -115,7 +115,7 @@ function write(stream: WritableStream, text: string, command: string): void {
             buffer = [];
             buffers.set(command, buffer);
         }
-        buffer.push({ stream: stream, text });
+        buffer.push({ stream, text });
     }
 }
 
