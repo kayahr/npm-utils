@@ -7,11 +7,14 @@ import { afterEach, beforeEach, describe, it } from "node:test";
 import { main } from "../main/run.ts";
 import { captureOutput, isWindows } from "./support/utils.ts";
 import assert from "node:assert";
-import { execFileSync } from "node:child_process";
+import { execFile as execFileSync } from "node:child_process";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { IoCapture } from "./support/IoCapture.ts";
+import { promisify } from "node:util";
+
+const execFile = promisify(execFileSync);
 
 const tmpPrefix = join(tmpdir(), "@kayahr-npm-utils-");
 
@@ -71,8 +74,8 @@ describe("run", () => {
     });
 
     it("can be executed as Node.js script", async () => {
-        const output = execFileSync(process.execPath, [ "src/main/run.ts", "--help" ], { encoding: "utf8" });
-        assert.match(output, /^Usage: run /);
+        const output = await execFile(process.execPath, [ "src/main/run.ts", "--help" ], { encoding: "utf8" });
+        assert.match(output.stdout, /^Usage: run /);
     });
 
     it("shows help on --help option", async (t) => {

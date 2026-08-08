@@ -11,7 +11,10 @@ import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { main } from "../main/cp.ts";
 import { captureOutput, exists } from "./support/utils.ts";
-import { execFileSync } from "node:child_process";
+import { execFile as execFileSync } from "node:child_process";
+import { promisify } from "node:util";
+
+const execFile = promisify(execFileSync);
 
 const tmpPrefix = join(tmpdir(), "@kayahr-npm-utils-");
 const testFiles = [
@@ -49,8 +52,8 @@ describe("cp", () => {
     }
 
     it("can be executed as Node.js script", async () => {
-        const output = execFileSync(process.execPath, [ "src/main/cp.ts", "--help" ], { encoding: "utf8" });
-        assert.match(output, /^Usage: cp /);
+        const output = await execFile(process.execPath, [ "src/main/cp.ts", "--help" ], { encoding: "utf8" });
+        assert.match(output.stdout, /^Usage: cp /);
     });
 
     it("shows help on --help option", async (t) => {
