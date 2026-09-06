@@ -82,7 +82,7 @@
         "@kayahr/npm-utils": "1.1.2",
         "@kayahr/ntest": "1.3.0",
         "@kayahr/oxlint-config": "1.40.0",
-        "@types/node": "26.2.0",
+        "@types/node": "26.4.1",
         "oxlint-tsgolint": "^7.0.2001",
         "typescript": "7.0.2"
     }
